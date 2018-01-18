@@ -1,14 +1,14 @@
 /* vim: set ai et ts=4 sw=4: */
 
-#include <event2/event.h>
-#include <sys/socket.h>
 #include <arpa/inet.h>
+#include <errno.h>
+#include <event2/event.h>
 #include <netinet/in.h> // keep this, for FreeBSD
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
+#include <sys/socket.h>
 #include <unistd.h>
 
 #define READ_BUFF_SIZE 128
@@ -61,8 +61,8 @@ void on_string_received(const char* str, int len, connection_ctx_t* ctx) {
     connection_ctx_t* peer = ctx->next;
     while(peer != ctx) {
         if(peer->write_event == NULL) { // list head, skipping
-           peer = peer->next;
-           continue;
+            peer = peer->next;
+            continue;
         }
 
         printf("[%p] sending a message to %p...\n", ctx, peer);
@@ -71,8 +71,11 @@ void on_string_received(const char* str, int len, connection_ctx_t* ctx) {
         if(WRITE_BUFF_SIZE - peer->write_buff_used < len + 1) {
             // if it's not call on_close being careful with the links in the linked list
             printf("[%p] unable to send a message to %p - "
-                    "not enough space in the buffer; "
-                    "closing %p's connection\n", ctx, peer, peer);
+                   "not enough space in the buffer; "
+                   "closing %p's connection\n",
+                   ctx,
+                   peer,
+                   peer);
             connection_ctx_t* next = peer->next;
             on_close(peer);
             peer = next;
@@ -99,8 +102,7 @@ void on_read(evutil_socket_t fd, short flags, void* arg) {
 
     ssize_t bytes;
     for(;;) {
-        bytes = read(fd, ctx->read_buff + ctx->read_buff_used,
-                         READ_BUFF_SIZE - ctx->read_buff_used);
+        bytes = read(fd, ctx->read_buff + ctx->read_buff_used, READ_BUFF_SIZE - ctx->read_buff_used);
         if(bytes == 0) {
             printf("[%p] client disconnected!\n", ctx);
             on_close(ctx);
@@ -128,11 +130,11 @@ void on_read(evutil_socket_t fd, short flags, void* arg) {
             check++;
             continue;
         }
-        
+
         int length = (int)check;
         ctx->read_buff[length] = '\0';
-        if((length > 0) && (ctx->read_buff[length-1] == '\r')) {
-            ctx->read_buff[length-1] = '\0';
+        if((length > 0) && (ctx->read_buff[length - 1] == '\r')) {
+            ctx->read_buff[length - 1] = '\0';
             length--;
         }
 
@@ -193,7 +195,7 @@ void on_accept(evutil_socket_t listen_sock, short flags, void* arg) {
     ctx->next = head_ctx->next;
     head_ctx->next->prev = ctx;
     head_ctx->next = ctx;
-    
+
     ctx->base = head_ctx->base;
     ctx->read_buff_used = 0;
     ctx->write_buff_used = 0;
@@ -287,8 +289,8 @@ void ignore_sigpipe() {
     if(sigaddset(&msk, SIGPIPE) < 0)
         error("sigaddset() failed");
 
-//    if(pthread_sigmask(SIG_BLOCK, &msk, nullptr) != 0)
-//        error("pthread_sigmask() failed");
+    //    if(pthread_sigmask(SIG_BLOCK, &msk, nullptr) != 0)
+    //        error("pthread_sigmask() failed");
 }
 
 int main(int argc, char** argv) {
@@ -296,7 +298,7 @@ int main(int argc, char** argv) {
         printf("Usage: %s <host> <port>\n", argv[0]);
         exit(1);
     }
-    
+
     char* host = argv[1];
     int port = atoi(argv[2]);
     printf("Starting chat server on %s:%d\n", host, port);
