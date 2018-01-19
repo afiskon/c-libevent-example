@@ -259,7 +259,7 @@ void run(char* host, int port) {
     if(bind(head_ctx->fd, (struct sockaddr*)&sin, sizeof(sin)) < 0)
         error("bind() failed");
 
-    if(listen(head_ctx->fd, 16) < 0)
+    if(listen(head_ctx->fd, 1000) < 0)
         error("listen() failed");
 
     // create an event base
