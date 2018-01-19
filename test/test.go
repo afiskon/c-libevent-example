@@ -50,14 +50,7 @@ func receiverProc(num int, total int, readych chan int, donech chan int, ip stri
     log.Printf("[%d] ready!", num)
 
     buff := make([]byte, 64)
-
-    n := 0
-    for {
-        n, _ = conn.Read(buff)
-        if n > 0 {
-            break
-        }
-    }
+    n, _ := conn.Read(buff)
     log.Printf("[%d] receive: %d bytes", num, n)
 
     donech <- 0x0D
