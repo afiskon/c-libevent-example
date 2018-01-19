@@ -243,7 +243,7 @@ void run(char* host, int port) {
     if(head_ctx->fd < 0)
         error("socket() failed");
 
-    // make in nonblocking
+    // make it nonblocking
     if(evutil_make_socket_nonblocking(head_ctx->fd) < 0)
         error("evutil_make_socket_nonblocking() failed");
 
