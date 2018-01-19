@@ -69,7 +69,7 @@ void on_string_received(const char* str, int len, connection_ctx_t* ctx) {
 
         // check that there is enough space in the write buffer
         if(WRITE_BUFF_SIZE - peer->write_buff_used < len + 1) {
-            // if it's not call on_close being careful with the links in the linked list
+            // if it's not, call on_close being careful with the links in the linked list
             printf("[%p] unable to send a message to %p - "
                    "not enough space in the buffer; "
                    "closing %p's connection\n",
