@@ -45,7 +45,7 @@ func receiverProc(num int, total int, readych chan int, donech chan int, ip stri
 
     donech <- 0x0C
 
-    // wait until all client connect
+    // wait until all clients are connected and the message is sent
     <-readych
     log.Printf("[%d] ready!", num)
 
@@ -75,14 +75,13 @@ func main() {
         time.Sleep(1 * time.Millisecond);
     }
 
-    // to make sure every client is connected
     log.Printf("[main]: making sure all clients are connected")
     for i := 0; i < total; i++ {
         <-donech
         log.Printf("[main]: connected, i = %d", i)
     }
 
-    log.Printf("[main]: starting test")
+    log.Printf("[main]: sending message")
     sendMessage(ip, port)
     log.Printf("[main]: message sent")
 
