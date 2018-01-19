@@ -194,6 +194,8 @@ void on_accept(evutil_socket_t listen_sock, short flags, void* arg) {
         if(fd < 0)
             break;
 
+        evutil_make_socket_nonblocking(fd);
+
         connection_ctx_t* ctx = (connection_ctx_t*)malloc(sizeof(connection_ctx_t));
         if(!ctx)
             error("malloc() failed");
