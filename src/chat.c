@@ -187,37 +187,42 @@ void on_write(evutil_socket_t fd, short flags, void* arg) {
 
 void on_accept(evutil_socket_t listen_sock, short flags, void* arg) {
     connection_ctx_t* head_ctx = (connection_ctx_t*)arg;
-    connection_ctx_t* ctx = (connection_ctx_t*)malloc(sizeof(connection_ctx_t));
-    if(!ctx)
-        error("malloc() failed");
+    evutil_socket_t fd = 0;
 
-    // add ctx to the linked list
-    ctx->prev = head_ctx;
-    ctx->next = head_ctx->next;
-    head_ctx->next->prev = ctx;
-    head_ctx->next = ctx;
+    while(fd >= 0) {
+        fd = accept(listen_sock, 0, 0);
+        if(fd < 0)
+            break;
 
-    ctx->base = head_ctx->base;
-    ctx->read_buff_used = 0;
-    ctx->write_buff_used = 0;
+        connection_ctx_t* ctx = (connection_ctx_t*)malloc(sizeof(connection_ctx_t));
+        if(!ctx)
+            error("malloc() failed");
 
-    evutil_socket_t fd = accept(listen_sock, 0, 0);
-    if(fd < 0)
-        error("accept() failed");
+        // add ctx to the linked list
+        ctx->prev = head_ctx;
+        ctx->next = head_ctx->next;
+        head_ctx->next->prev = ctx;
+        head_ctx->next = ctx;
 
-    printf("[%p] New connection! fd = %d\n", ctx, fd);
+        ctx->base = head_ctx->base;
 
-    ctx->fd = fd;
-    ctx->read_event = event_new(ctx->base, fd, EV_READ | EV_PERSIST, on_read, (void*)ctx);
-    if(!ctx->read_event)
-        error("event_new(... EV_READ ...) failed");
+        ctx->read_buff_used = 0;
+        ctx->write_buff_used = 0;
 
-    ctx->write_event = event_new(ctx->base, fd, EV_WRITE | EV_PERSIST, on_write, (void*)ctx);
-    if(!ctx->write_event)
-        error("event_new(... EV_WRITE ...) failed");
+        printf("[%p] New connection! fd = %d\n", ctx, fd);
 
-    if(event_add(ctx->read_event, NULL) < 0)
-        error("event_add(read_event, ...) failed");
+        ctx->fd = fd;
+        ctx->read_event = event_new(ctx->base, fd, EV_READ | EV_PERSIST, on_read, (void*)ctx);
+        if(!ctx->read_event)
+            error("event_new(... EV_READ ...) failed");
+
+        ctx->write_event = event_new(ctx->base, fd, EV_WRITE | EV_PERSIST, on_write, (void*)ctx);
+        if(!ctx->write_event)
+            error("event_new(... EV_WRITE ...) failed");
+
+        if(event_add(ctx->read_event, NULL) < 0)
+            error("event_add(read_event, ...) failed");
+    }
 }
 
 void run(char* host, int port) {
