@@ -187,11 +187,7 @@ void on_write(evutil_socket_t fd, short flags, void* arg) {
 
 void on_accept(evutil_socket_t listen_sock, short flags, void* arg) {
     connection_ctx_t* head_ctx = (connection_ctx_t*)arg;
-    evutil_socket_t fd = 0;
-
-    do {
-        fd = accept(listen_sock, 0, 0);
-    } while((fd < 0) && (errno == EINTR));
+    evutil_socket_t fd = accept(listen_sock, 0, 0);
 
     if(fd < 0)
         error("accept() failed");
