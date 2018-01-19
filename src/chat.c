@@ -227,7 +227,7 @@ void on_accept(evutil_socket_t listen_sock, short flags, void* arg) {
 }
 
 void run(char* host, int port) {
-    // allocate memory for a connection ctx (used a linked list head)
+    // allocate memory for a connection ctx (used as linked list head)
     connection_ctx_t* head_ctx = (connection_ctx_t*)malloc(sizeof(connection_ctx_t));
     if(!head_ctx)
         error("malloc() failed");
