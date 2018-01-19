@@ -55,6 +55,7 @@ void on_close(connection_ctx_t* ctx) {
     free(ctx);
 }
 
+// called manually
 void on_string_received(const char* str, int len, connection_ctx_t* ctx) {
     printf("[%p] a complete string received: '%s', length = %d\n", ctx, str, len);
 
