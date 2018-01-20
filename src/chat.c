@@ -10,6 +10,7 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <stdbool.h>
 
 #define READ_BUFF_SIZE 128
 #define WRITE_BUFF_SIZE ((READ_BUFF_SIZE)*8)
@@ -22,6 +23,7 @@ typedef struct connection_ctx_t {
     struct event_base* base;
     struct event* read_event;
     struct event* write_event;
+    bool write_event_added;
 
     uint8_t read_buff[READ_BUFF_SIZE];
     uint8_t write_buff[WRITE_BUFF_SIZE];
@@ -88,9 +90,13 @@ void on_string_received(const char* str, int len, connection_ctx_t* ctx) {
         peer->write_buff[peer->write_buff_used + len] = '\n';
         peer->write_buff_used += len + 1;
 
-        // add writing event (it's not a problem to call it multiple times)
-        if(event_add(peer->write_event, NULL) < 0)
-            error("event_add(peer->write_event, ...) failed");
+        // add writing event
+        if(!peer->write_event_added) {
+            if(event_add(peer->write_event, NULL) < 0)
+                error("event_add(peer->write_event, ...) failed");
+
+            peer->write_event_added = true;
+        }
 
         peer = peer->next;
     }
@@ -182,6 +188,8 @@ void on_write(evutil_socket_t fd, short flags, void* arg) {
         printf("[%p] write_buff is empty, calling event_del(write_event)\n", ctx);
         if(event_del(ctx->write_event) < 0)
             error("event_del() failed");
+
+        ctx->write_event_added = false;
     }
 }
 
@@ -207,6 +215,7 @@ void on_accept(evutil_socket_t listen_sock, short flags, void* arg) {
     head_ctx->next = ctx;
 
     ctx->base = head_ctx->base;
+    ctx->write_event_added = false;
 
     ctx->read_buff_used = 0;
     ctx->write_buff_used = 0;
@@ -237,6 +246,7 @@ void run(char* host, int port) {
     head_ctx->write_event = NULL;
     head_ctx->read_buff_used = 0;
     head_ctx->write_buff_used = 0;
+    head_ctx->write_event_added = false;
 
     // create a socket
     head_ctx->fd = socket(AF_INET, SOCK_STREAM, 0);
