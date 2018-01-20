@@ -5,6 +5,7 @@ import (
     "os"
     "log"
     "net"
+    "time"
     "strconv"
     "strings"
 )
@@ -71,6 +72,7 @@ func main() {
     for i := 0; i < total; i++ {
         log.Printf("[main]: creating client, i = %d", i)
         go receiverProc(i, total, readych, donech, ip, port)
+        time.Sleep(1 * time.Millisecond);
     }
 
     log.Printf("[main]: making sure all clients are connected")
